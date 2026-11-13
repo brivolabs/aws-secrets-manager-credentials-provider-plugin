@@ -24,10 +24,29 @@ public class FolderScope implements Serializable {
     private static final Logger LOG = Logger.getLogger(FolderScope.class.getName());
     private static final FolderScope GLOBAL = new FolderScope(Collections.emptySet());
 
+    private static final FolderScope NONE = new FolderScope(Collections.emptySet(), true);
+
     private final Set<String> folderPaths;
+    private final boolean denyAll;
 
     private FolderScope(@NonNull Set<String> folderPaths) {
+        this(folderPaths, false);
+    }
+
+    private FolderScope(@NonNull Set<String> folderPaths, boolean denyAll) {
         this.folderPaths = Collections.unmodifiableSet(folderPaths);
+        this.denyAll = denyAll;
+    }
+
+    /**
+     * Creates a scope that is accessible from nowhere. Used for a secret that has a folder tag but no usable folder
+     * path in it, so that a mistake in the tag hides the secret instead of making it global.
+     *
+     * @return a FolderScope that denies all access
+     */
+    @NonNull
+    public static FolderScope none() {
+        return NONE;
     }
 
     /**
@@ -97,7 +116,7 @@ public class FolderScope implements Serializable {
      * @return true if global, false otherwise
      */
     public boolean isGlobal() {
-        return folderPaths.isEmpty();
+        return !denyAll && folderPaths.isEmpty();
     }
 
     /**
@@ -195,16 +214,16 @@ public class FolderScope implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FolderScope that = (FolderScope) o;
-        return Objects.equals(folderPaths, that.folderPaths);
+        return denyAll == that.denyAll && Objects.equals(folderPaths, that.folderPaths);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(folderPaths);
+        return Objects.hash(folderPaths, denyAll);
     }
 
     @Override
     public String toString() {
-        return isGlobal() ? "FolderScope{GLOBAL}" : "FolderScope{" + folderPaths + "}";
+        return isGlobal() ? "FolderScope{GLOBAL}" : denyAll ? "FolderScope{NONE}" : "FolderScope{" + folderPaths + "}";
     }
 }

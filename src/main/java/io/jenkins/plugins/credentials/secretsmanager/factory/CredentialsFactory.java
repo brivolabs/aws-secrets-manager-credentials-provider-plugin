@@ -87,7 +87,7 @@ public abstract class CredentialsFactory {
      * several folders without a delimiter inside a value, because AWS does not allow a comma in a tag value.
      *
      * @param tags the secret's AWS tags
-     * @return the folder scope, or the global scope if the secret has no folder tag
+     * @return the folder scope: global if the secret has no folder tag, and accessible from nowhere if it has folder tags but none holds a usable path
      */
     static FolderScope folderScope(Map<String, String> tags) {
         final List<String> values = new ArrayList<>();
@@ -101,7 +101,13 @@ public abstract class CredentialsFactory {
                 .map(Map.Entry::getValue)
                 .forEach(values::add);
 
-        return values.isEmpty() ? FolderScope.global() : FolderScope.parse(String.join(",", values));
+        if (values.isEmpty()) {
+            return FolderScope.global();
+        }
+
+        // A folder tag that holds no usable path (blank, or only slashes) must not make the secret global
+        final FolderScope scope = FolderScope.parse(String.join(",", values));
+        return scope.isGlobal() ? FolderScope.none() : scope;
     }
 
     private static class SecretBytesSupplier extends RealSecretsManager implements Supplier<SecretBytes> {

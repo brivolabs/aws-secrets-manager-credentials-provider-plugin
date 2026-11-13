@@ -66,4 +66,26 @@ public class FolderTagsTest {
 
         assertThat(s.getFolderPaths()).containsExactly("engineering/backend");
     }
+
+    @Test
+    public void shouldDenyEverywhereWhenTheFolderTagIsBlank() {
+        final FolderScope s = scope(FOLDER, "  ");
+
+        assertThat(s.isGlobal()).isFalse();
+        assertThat(s.isAccessibleFrom("engineering/backend")).isFalse();
+        assertThat(s.isAccessibleFrom(null)).isFalse();
+    }
+
+    @Test
+    public void shouldDenyEverywhereWhenTheFolderTagHoldsOnlySlashes() {
+        assertThat(scope(FOLDER, "//").isAccessibleFrom("engineering")).isFalse();
+    }
+
+    @Test
+    public void shouldIgnoreABlankTagWhenAnotherTagHoldsAFolder() {
+        final FolderScope s = scope(FOLDER, "", FOLDER + ":2", "engineering/backend");
+
+        assertThat(s.isAccessibleFrom("engineering/backend")).isTrue();
+        assertThat(s.isAccessibleFrom("qa")).isFalse();
+    }
 }

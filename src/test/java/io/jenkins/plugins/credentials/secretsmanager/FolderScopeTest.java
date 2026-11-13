@@ -213,4 +213,14 @@ public class FolderScopeTest {
         assertThat(global.toString()).contains("GLOBAL");
         assertThat(scoped.toString()).contains("engineering/backend");
     }
+
+    @Test
+    public void testNoneScopeDeniesEverything() {
+        FolderScope none = FolderScope.none();
+
+        assertThat(none.isGlobal()).isFalse();
+        assertThat(none.isAccessibleFrom(null)).isFalse();
+        assertThat(none.isAccessibleFrom("engineering")).isFalse();
+        assertThat(none).isNotEqualTo(FolderScope.global());
+    }
 }

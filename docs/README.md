@@ -424,6 +424,10 @@ The base tag is optional (a secret with only `jenkins:credentials:folder:2` is s
 
 Each tag holds one path, so the paths stay within the length limit of a tag value, and no delimiter is needed. This matters on AWS: Secrets Manager does not allow a comma in a tag value, so a comma-separated list such as `engineering/backend,engineering/frontend` is rejected when the tag is written. The plugin still reads a comma-separated list in a folder tag, which is useful for tag stores that accept it.
 
+### Mistakes in the folder tag
+
+A secret that has a folder tag (`jenkins:credentials:folder` or `jenkins:credentials:folder:<suffix>`) is never global. If none of its folder tags holds a usable path (for example a blank value), the secret is not accessible from any folder, instead of becoming accessible everywhere.
+
 ### Global Credentials
 
 Credentials without the `jenkins:credentials:folder` tag remain globally accessible (the default behavior):
